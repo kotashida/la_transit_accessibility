@@ -21,7 +21,7 @@ The primary output of this project is an interactive map, `la_transit_accessibil
 The project relies on two main data sources:
 
 *   **LA Metro GTFS Data (`gtfs_bus.zip`):** This compressed file contains the General Transit Feed Specification data for Los Angeles bus routes. It is the foundational dataset for extracting information about stop locations, route geometries, and detailed schedules. The `main.py` script extracts this data into the `data/gtfs_bus_extracted` directory.
-*   **Los Angeles County Boundary (`la_county_boundary.geojson`):** The geographical boundary of Los Angeles County is programmatically fetched using the `osmnx` Python library. This library retrieves the data from OpenStreetMap (specifically, using the relation ID for Los Angeles County, California: 207359) and saves it as a GeoJSON file within the `data` directory. This ensures accurate spatial context for the analysis.
+*   **Los Angeles County Boundary (`la_county_boundary.geojson`):** The geographical boundary of Los Angeles County is programmatically fetched using the `osmnx` Python library. This library retrieves the data from OpenStreetMap and saves it as a GeoJSON file within the `data` directory. This ensures accurate spatial context for the analysis.
 
 ## Methodology
 
