@@ -1,76 +1,65 @@
-# Los Angeles Public Transit Accessibility Map
+# Los Angeles Public Transit Accessibility Analysis
 
-## Project Overview
+## Project Summary
 
-This project aims to analyze and visualize the accessibility of public transit across Los Angeles County. By leveraging GTFS (General Transit Feed Specification) data for bus services and geographic data for the county boundaries, it generates an interactive HTML map. The map visually represents transit service frequency, allowing users to identify areas with high or low bus accessibility during typical weekday daytime hours.
+This project conducts a quantitative analysis of public transit accessibility across Los Angeles County using GTFS (General Transit Feed Specification) data. It applies temporal filtering, frequency analysis, and geospatial techniques to measure and visualize the service intensity of the LA Metro bus system. The primary output is an interactive heatmap that reveals spatial disparities in transit availability, allowing for data-driven insights into the region's transportation infrastructure. This README provides a detailed walkthrough of the methodology, key quantitative findings, and a summary of the analytical skills demonstrated.
 
-## Interactive Map Features
+## Key Quantitative Skills
 
-The primary output of this project is an interactive map, `la_transit_accessibility_map.html`, located in the `data` directory. This map offers the following interactive and visual elements:
-
-*   **Basemap:** Utilizes a dark-themed "CartoDB dark_matter" basemap, providing a high-contrast background that enhances the visibility of the transit data layers.
-*   **LA County Boundary:** Displays a distinct white outline of Los Angeles County, clearly delineating the area of analysis.
-*   **Transit Service Heatmap:** A core feature, this layer visualizes the density and frequency of transit service. Brighter and more intense areas on the heatmap indicate a higher concentration of bus trips, signifying better transit accessibility. The intensity is weighted by the number of trips at each stop.
-*   **Transit Stops (Toggleable Layer):** An optional layer showing individual transit stops as cyan circular markers. This layer can be toggled on/off using the layer control, providing flexibility for a cleaner map view or detailed stop-level information.
-    *   **Pop-up Information:** When a transit stop marker is clicked, a pop-up displays:
-        *   **Stop:** The official name of the transit stop.
-        *   **Trips:** The calculated total number of bus trips servicing that specific stop between 7 AM and 7 PM on a typical weekday.
-
-## Data Sources
-
-The project relies on two main data sources:
-
-*   **LA Metro GTFS Data (`gtfs_bus.zip`):** This compressed file contains the General Transit Feed Specification data for Los Angeles bus routes. It is the foundational dataset for extracting information about stop locations, route geometries, and detailed schedules. The `main.py` script extracts this data into the `data/gtfs_bus_extracted` directory.
-*   **Los Angeles County Boundary (`la_county_boundary.geojson`):** The geographical boundary of Los Angeles County is programmatically fetched using the `osmnx` Python library. This library retrieves the data from OpenStreetMap and saves it as a GeoJSON file within the `data` directory. This ensures accurate spatial context for the analysis.
+*   **Statistical Analysis:** Frequency analysis, descriptive statistics (mean, median, min/max), and data aggregation to measure transit service levels.
+*   **Data Engineering:** ETL (Extract, Transform, Load) processes for cleaning, filtering, and structuring large-scale GTFS schedule data for analysis.
+*   **Geospatial Analysis:** Coordinate system reprojection (WGS84 to UTM), programmatic data acquisition from OpenStreetMap, and kernel density visualization (heatmap).
+*   **Programming & Automation:** Scripting in Python with `pandas` and `geopandas` for data manipulation, and `gtfs-kit` for specialized transit data processing.
+*   **Data Visualization:** Creation of interactive maps with `folium` to communicate complex spatial and quantitative data effectively.
 
 ## Methodology
 
-The `main.py` script orchestrates the entire analysis and map generation process, following these key steps:
+The analysis is orchestrated by the `main.py` script, which follows a systematic, multi-stage methodology to ensure accuracy and reproducibility.
 
-1.  **Data Preparation and Loading:**
-    *   **GTFS Extraction:** The `gtfs_bus.zip` file is automatically extracted into `data/gtfs_bus_extracted` if not already present.
-    *   **LA County Boundary Acquisition:** The script checks for the existence of `la_county_boundary.geojson`. If it doesn't exist, `osmnx` is used to download the Los Angeles County boundary data from OpenStreetMap and save it. This step leverages caching to avoid redundant downloads.
-    *   **Data Loading:** Both the extracted GTFS feed and the LA County boundary GeoJSON are loaded into appropriate data structures (using `gtfs_kit` for GTFS and `geopandas` for the GeoJSON).
+### 1. Data Ingestion and Preprocessing
 
-2.  **Service Frequency Calculation:**
-    *   **Typical Weekday Identification:** The script intelligently identifies a representative weekday (Monday-Friday) from the GTFS `calendar.txt` and `calendar_dates.txt` to ensure the analysis reflects regular service patterns.
-    *   **Trip Filtering:** Bus trips are filtered to include only those operating on the identified typical weekday and arriving at stops between 7:00 AM and 7:00 PM (inclusive).
-    *   **Stop Frequency Aggregation:** For each transit stop, the number of unique trips serving it within the specified time window is calculated. This count serves as the primary metric for transit accessibility.
+*   **GTFS Data Extraction:** The script begins by extracting the LA Metro bus service data from the `gtfs_bus.zip` archive into a structured format using the `gtfs-kit` library.
+*   **Geospatial Boundary Acquisition:** The official boundary for Los Angeles County is programmatically fetched from OpenStreetMap using the `osmnx` library. This data is saved as a GeoJSON file (`la_county_boundary.geojson`) to serve as the geographic container for the analysis. Caching is implemented to prevent redundant downloads.
 
-3.  **Geospatial Processing and Map Data Preparation:**
-    *   **Coordinate System Transformation:** The LA County boundary is reprojected to a suitable projected coordinate system (UTM Zone 10N, EPSG:26910) for accurate centroid calculation, then reprojected back to WGS84 (EPSG:4326) for compatibility with Folium.
-    *   **Heatmap Data Structuring:** A list of data points is prepared for the heatmap, where each point includes the latitude, longitude, and the calculated number of trips for a given stop.
+### 2. Temporal Filtering and Service Frequency Analysis
 
-4.  **Interactive Map Visualization (Folium):**
-    *   **Map Initialization:** An interactive Folium map is initialized, centered on the calculated centroid of Los Angeles County.
-    *   **Layer Addition:** The LA County boundary is added as a GeoJSON layer. The transit service heatmap is added using `folium.plugins.HeatMap`. An optional `folium.FeatureGroup` is created for individual transit stops, allowing them to be toggled.
-    *   **Layer Control:** A `folium.LayerControl` is added to the map, enabling users to switch between or hide different map layers.
-    *   **Map Saving:** The final interactive map is saved as `la_transit_accessibility_map.html` in the `data` directory.
+To accurately quantify transit accessibility, the analysis focuses on a representative period of service.
+
+*   **Defining a "Typical Weekday":** The script algorithmically identifies a representative weekday (Monday-Friday) by parsing the GTFS `calendar.txt` and `calendar_dates.txt` files. This controls for variations between weekday, weekend, and holiday schedules, ensuring the analysis reflects a standard service day.
+*   **Temporal Filtering:** A time-based filter is applied to isolate bus trips occurring between **7:00 AM and 7:00 PM**. This 12-hour window was chosen to represent the core daytime hours when demand for transit is typically highest for work, appointments, and other daily activities.
+*   **Frequency Aggregation:** For each unique transit stop, the script calculates the total number of bus trips that service it within the defined time window. This metric, **trips per stop**, serves as the primary quantitative measure of transit service intensity.
+
+### 3. Geospatial Analysis and Visualization
+
+*   **Coordinate System Reprojection:** To ensure accurate geospatial calculations, the LA County boundary is temporarily reprojected from the standard WGS84 (EPSG:4326) to a projected coordinate system (UTM Zone 10N, EPSG:26910). This allows for a precise calculation of the county's geographic centroid, which is used to center the map.
+*   **Heatmap as Kernel Density Visualization:** The service frequencies are visualized using a heatmap. This technique is a form of **kernel density estimation**, where the "heat" at any given point on the map represents the density of bus trips. The intensity is weighted by the `num_trips` metric, providing a powerful visual summary of which areas have the highest concentration of transit service.
+*   **Interactive Map Generation:** The final visualization is built using `folium`. The map includes the LA County boundary, the transit service heatmap, and a toggleable layer of individual bus stops with pop-up tooltips displaying the stop name and its specific trip count.
+
+## Quantitative Results & Visualization
+
+The analysis of the GTFS data for a typical weekday (7 AM - 7 PM) yielded the following key metrics:
+
+*   **Total Transit Stops Analyzed:** 13,033
+*   **Stops with Active Service:** 9,146 (70.2% of total stops)
+*   **Total Bus Trips:** 105,978
+*   **Service Frequency Distribution:**
+    *   **Mean Trips per Stop:** 11.6
+    *   **Median Trips per Stop:** 9
+    *   **Maximum Trips at a Single Stop:** 226
+    *   **Minimum Trips at an Active Stop:** 1
+
+The primary output, `la_transit_accessibility_map.html`, provides an interactive platform to explore these results spatially. The heatmap clearly shows that transit service is heavily concentrated in the central and southern parts of Los Angeles County, while northern and more remote areas exhibit significantly lower service levels.
 
 ## How to Run the Project
 
-To execute the analysis and generate the interactive transit accessibility map, follow these steps:
-
-1.  **Prerequisites:** Ensure you have Python 3.x installed on your system.
-
-2.  **Project Structure:** Verify that your project directory contains:
-    *   `main.py` (the main script)
-    *   `requirements.txt` (lists Python dependencies)
-    *   A `data` directory containing `gtfs_bus.zip`.
-
-3.  **Install Dependencies:** Open your terminal or command prompt, navigate to the project's root directory, and install all required Python packages using pip:
+1.  **Prerequisites:** Ensure you have Python 3.x installed.
+2.  **Project Structure:** Your directory must contain `main.py`, `requirements.txt`, and a `data` directory with `gtfs_bus.zip`.
+3.  **Install Dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
-
-4.  **Execute the Script:** Run the main Python script from your terminal:
+4.  **Execute the Script:**
     ```bash
     python main.py
     ```
-    The script will display progress messages in the console. It will download the LA County boundary (if not already cached) and process the GTFS data. Upon successful completion, it will save the interactive map.
-
-5.  **View the Map:** Once the script finishes, open the generated HTML file in your web browser to explore the interactive visualization:
-    ```
-    data/la_transit_accessibility_map.html
-    ```
-    You can simply double-click the file in your file explorer or open it directly from your browser.
+5.  **View the Map:** Open `data/la_transit_accessibility_map.html` in a web browser to explore the interactive visualization.
